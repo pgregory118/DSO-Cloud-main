@@ -60,7 +60,7 @@ jobs:
           API="$BASE/api/v2"
 
           SCAN_TYPE="NPM Audit v7+ Scan"
-          PRODUCT_NAME="ProductUser1"
+          PRODUCT_NAME="ProductUser28"
           ENGAGEMENT_NAME="Continuous Testing"
           TEST_TITLE="NPM Audit (CI)"
           FILE_PATH="bank_app/site/audit.json"
@@ -123,7 +123,7 @@ jobs:
           API="$BASE/api/v2"
 
           SCAN_TYPE="Semgrep JSON Report"
-          PRODUCT_NAME="ProductUser1"
+          PRODUCT_NAME="ProductUser28"
           ENGAGEMENT_NAME="Continuous Testing"
           TEST_TITLE="OpenGrep (Semgrep fork) - CI"
           FILE_PATH="opengrep.json"
@@ -189,7 +189,7 @@ jobs:
           API="$BASE/api/v2"
 
           SCAN_TYPE="Trivy Scan"
-          PRODUCT_NAME="ProductUser1"
+          PRODUCT_NAME="ProductUser28"
           ENGAGEMENT_NAME="Continuous Testing"
           TEST_TITLE="Trivy Scan - App"
           FILE_PATH="trivy-app.json"
@@ -251,7 +251,7 @@ jobs:
           API="$BASE/api/v2"
 
           SCAN_TYPE="Trivy Scan"
-          PRODUCT_NAME="ProductUser1"
+          PRODUCT_NAME="ProductUser28"
           ENGAGEMENT_NAME="Continuous Testing"
           TEST_TITLE="Trivy Scan - DB"
           FILE_PATH="trivy-db.json"
@@ -329,7 +329,7 @@ jobs:
             -H "Authorization: Token $DEFECTDOJO_API_KEY" \
             -H "Accept: application/json" \
             -F "scan_type=ZAP Scan" \
-            -F "product_name=ProductUser1" \
+            -F "product_name=ProductUser28" \
             -F "engagement_name=Continuous Testing" \
             -F "test_title=ZAP Baseline - App" \
             -F "auto_create_context=true" \
