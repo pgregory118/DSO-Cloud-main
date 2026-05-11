@@ -341,3 +341,31 @@ jobs:
           echo "HTTP: $HTTP"
           cat /tmp/dojo_zap.json
           [[ "$HTTP" == 2* ]]
+
+      ###########################################
+      # InSpec
+      ###########################################
+
+      - name: InSpec DB Scan
+        continue-on-error: true
+        run: |
+          curl -L https://packages.chef.io/files/stable/inspec/5.22.72/ubuntu/18.04/inspec_5.22.72-1_amd64.deb -o /tmp/inspec.deb
+          sudo dpkg -i /tmp/inspec.deb
+      
+          db_containerid=$(docker ps -aqf "name=testdb-run")
+      
+          echo "DB Container ID: $db_containerid"
+      
+          inspec exec https://github.com/dev-sec/mysql-baseline \
+            -t docker://$db_containerid \
+            --chef-license accept \
+            --reporter cli || tee -a chef_inspect.log
+      
+          ls -la
+          cat chef_inspect.log || true
+      
+      - name: Upload InSpec Compliance scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: inspec-db-report
+          path: chef_inspect.log
