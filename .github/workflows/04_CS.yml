@@ -60,7 +60,7 @@ jobs:
           API="$BASE/api/v2"
 
           SCAN_TYPE="NPM Audit v7+ Scan"
-          PRODUCT_NAME="ProductUser28"
+          PRODUCT_NAME="ProductUser1"
           ENGAGEMENT_NAME="Continuous Testing"
           TEST_TITLE="NPM Audit (CI)"
           FILE_PATH="bank_app/site/audit.json"
@@ -123,7 +123,7 @@ jobs:
           API="$BASE/api/v2"
 
           SCAN_TYPE="Semgrep JSON Report"
-          PRODUCT_NAME="ProductUser28"
+          PRODUCT_NAME="ProductUser1"
           ENGAGEMENT_NAME="Continuous Testing"
           TEST_TITLE="OpenGrep (Semgrep fork) - CI"
           FILE_PATH="opengrep.json"
@@ -146,4 +146,132 @@ jobs:
 
           echo "HTTP: $HTTP"
           cat /tmp/dojo.json
+          [[ "$HTTP" == 2* ]]
+
+      # ###########################################
+      # # Scan images with Aqua Security Trivy
+      # ###########################################
+
+      - name: Build bank_app image
+        working-directory: bank_app/
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker build -t testapp:app-latest .
+
+      - name: Verify bank_app image exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker image inspect testapp:app-latest >/dev/null
+          docker images | head -n 20
+
+      - name: Trivy scan bank_app image (local)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: "testapp:app-latest"
+          format: "json"
+          output: "trivy-app.json"
+          # exit-code: "1"
+          # severity: "CRITICAL,HIGH"
+
+      - name: Upload trivy-app.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-app-report
+          path: trivy-app.json
+
+      - name: Upload Trivy App scan to DefectDojo
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${DEFECTDOJO_URL%/}"
+          API="$BASE/api/v2"
+
+          SCAN_TYPE="Trivy Scan"
+          PRODUCT_NAME="ProductUser1"
+          ENGAGEMENT_NAME="Continuous Testing"
+          TEST_TITLE="Trivy Scan - App"
+          FILE_PATH="trivy-app.json"
+
+          test -s "$FILE_PATH" || { echo "❌ Missing/empty: $FILE_PATH"; ls -lah; exit 1; }
+
+          HTTP=$(curl -skS -o /tmp/dojo_app.json -w "%{http_code}" \
+            -X POST "$API/reimport-scan/" \
+            -H "Authorization: Token $DEFECTDOJO_API_KEY" \
+            -H "Accept: application/json" \
+            -F "scan_type=$SCAN_TYPE" \
+            -F "product_name=$PRODUCT_NAME" \
+            -F "engagement_name=$ENGAGEMENT_NAME" \
+            -F "test_title=$TEST_TITLE" \
+            -F "auto_create_context=true" \
+            -F "scan_date=$(date -u +%F)" \
+            -F "close_old_findings=true" \
+            -F "file=@${FILE_PATH}"
+          )
+
+          echo "DefectDojo HTTP: $HTTP"
+          cat /tmp/dojo_app.json
+          [[ "$HTTP" == 2* ]]
+
+      # # ---------------- DB FLOW ----------------
+
+      - name: Build bank_db image
+        shell: bash
+        working-directory: bank_db/
+        run: |
+          set -euo pipefail
+          docker build -t testapp:db-latest .
+
+      - name: Verify bank_db image exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker image inspect testapp:db-latest >/dev/null
+          docker images | head -n 20
+
+      - name: Trivy scan bank_db image (local)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: "testapp:db-latest"
+          format: "json"
+          output: "trivy-db.json"
+
+      - name: Upload trivy-db.json artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-db-report
+          path: trivy-db.json
+
+      - name: Upload Trivy DB scan to DefectDojo
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="${DEFECTDOJO_URL%/}"
+          API="$BASE/api/v2"
+
+          SCAN_TYPE="Trivy Scan"
+          PRODUCT_NAME="ProductUser1"
+          ENGAGEMENT_NAME="Continuous Testing"
+          TEST_TITLE="Trivy Scan - DB"
+          FILE_PATH="trivy-db.json"
+
+          test -s "$FILE_PATH" || { echo "❌ Missing/empty: $FILE_PATH"; ls -lah; exit 1; }
+
+          HTTP=$(curl -skS -o /tmp/dojo_db.json -w "%{http_code}" \
+            -X POST "$API/reimport-scan/" \
+            -H "Authorization: Token $DEFECTDOJO_API_KEY" \
+            -H "Accept: application/json" \
+            -F "scan_type=$SCAN_TYPE" \
+            -F "product_name=$PRODUCT_NAME" \
+            -F "engagement_name=$ENGAGEMENT_NAME" \
+            -F "test_title=$TEST_TITLE" \
+            -F "auto_create_context=true" \
+            -F "scan_date=$(date -u +%F)" \
+            -F "close_old_findings=true" \
+            -F "file=@${FILE_PATH}"
+          )
+
+          echo "DefectDojo HTTP: $HTTP"
+          cat /tmp/dojo_db.json
           [[ "$HTTP" == 2* ]]
