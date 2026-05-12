@@ -1,4 +1,4 @@
-FROM dockette/nodejs:v16
+FROM node:lts
 WORKDIR /app
 COPY ./site /app/
 RUN rm -rf /app/node_modules
