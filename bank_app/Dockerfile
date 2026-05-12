@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts-alpine
 WORKDIR /app
 COPY ./site /app/
 RUN rm -rf /app/node_modules
